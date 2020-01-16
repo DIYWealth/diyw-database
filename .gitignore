@@ -1,6 +1,5 @@
 iexscripts/constants.py
-iexscripts/data/
-iexscripts/plots/
+iexscripts/output/
 
 # Editors
 .vscode/
