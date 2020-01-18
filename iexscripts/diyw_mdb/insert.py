@@ -202,7 +202,7 @@ def insert_quotes():
             #Get quote from IEX
             #print( mdb_symbol )
             #print( mdb_symbol["symbol"] )
-            #if mdb_symbol == "BAH":
+            #if mdb_symbol == "GRUB":
             #    flag = False
             #if flag:
             #    continue
@@ -279,7 +279,7 @@ def insert_dividends():
         if not iex_dividends.empty:
             #Update progress bar
             printProgressBar(index+1, len(mdb_symbols), prefix = 'Progress:', suffix = "Inserting dividend for " + mdb_symbol + "      ", length = 50)
-            print( iex_dividends )
+            #print( iex_dividends )
             db.iex_dividends.insert_many( iex_dividends.to_dict('records') )
         else:
             #Update progress bar
@@ -644,6 +644,7 @@ def insert_holdings():
         #Get portfolioID and inceptionDate
         portfolio = portfolio_row['portfolioID']
         inceptionDate = portfolio_row['inceptionDate']
+        print( 'Calculating holdings for ', portfolio )
         #Default to calculating holdings from inception
         date = inceptionDate
         #Get current holdings table
@@ -719,8 +720,8 @@ def insert_holdings():
             transactions_date = transactions[transactions.date == date]
             #Loop through transactions
             for t_index, transaction in transactions_date.iterrows():
-                #print( "Inserting transaction:" )
-                #print( transaction )
+                print( "Inserting transaction:" )
+                print( transaction )
                 #Get any existing holding for the transaction symbol
                 if transaction.type == "dividend":
                     holding = holdings[holdings.symbol == "USD"]
@@ -858,7 +859,7 @@ def insert_performance():
                 date = (pandas.Timestamp(date) + pandas.DateOffset(days=1)).strftime('%Y-%m-%d')
                 continue
             #Skip any day where there aren't prices for all stocks
-            if holdings_date[holdings_date.symbol != "USD"].isnull().values.any():
+            if holdings_date[holdings_date.symbol != "USD"]['close'].isnull().values.any():
                 date = (pandas.Timestamp(date) + pandas.DateOffset(days=1)).strftime('%Y-%m-%d')
                 continue
             #Calculate portfolio close of day value from close of day stock prices
@@ -906,7 +907,7 @@ def insert_performance():
         #Insert performance table
         insert_pf_performance = True
         #print( perf_tables )
-        if insert_pf_performance:
+        if insert_pf_performance and len(perf_tables)>0:
             #print( perf_tables )
             db.pf_performance.insert_many( perf_tables )
 
@@ -930,77 +931,3 @@ def insert_stock_list():
     if latestStockList.empty and not merged.empty:
         print( "Inserting stock list" )
         db.stock_list.insert_many( merged.to_dict('records') )
-
-#Export latest stock lists
-def export_stock_list():
-    print( "Exporting stock list to json" )
-    currDate = datetime.datetime.now().strftime("%Y-%m-%d")
-    #currDate = "2019-05-01"
-    latestStockList = mdb_query.get_stock_list(currDate, "latest")
-    #latestStockList = mdb_algo.calculate_top_stocks(currDate)
-    #Check that list is ordered correctly!
-    #Export stock list dataframe to json file
-    latestStockList.to_json(path_or_buf="output/json/stock_list.json", orient="records")
-    #Export table of most recent dates
-    #Get reportDate column and rank, return iloc[0]
-    latestReportDate = latestStockList['reportDate'].sort_values(ascending=False, axis='index').iloc[0]
-    latestReportDate = datetime.datetime.strptime(latestReportDate, '%Y-%m-%d').strftime('%b %d %Y')
-    #Get date.iloc[0]
-    latestDate = latestStockList['date'].sort_values(ascending=False, axis='index').iloc[0]
-    latestDate = datetime.datetime.strptime(latestDate, '%Y-%m-%d').strftime('%b %d %Y')
-    latestDates = pandas.DataFrame( { "latestReportDate": [latestReportDate],
-                                      "latestDate": [latestDate] } )
-    print( latestDates )
-    latestDates.to_json(path_or_buf="output/json/latest_dates.json", orient="records")
-
-#Export latest performance
-def export_performance():
-    print( "Exporting performance tables to json" )
-    #Start date
-    startDate = "2018-07-02"
-    #Get list of portfolios
-    portfolios = mdb_query.get_portfolios(startDate)["portfolioID"].tolist()
-    #Export SPY performance
-    spy_charts = mdb_query.get_chart(["SPY"]).sort_values(by="date", ascending=True, axis="index")
-    spy_charts.reset_index(drop=True, inplace=True)
-    fst_index = spy_charts[spy_charts.date >= startDate].index[0]-1
-    spy_charts = spy_charts[spy_charts.index >= fst_index]
-    spy_dates = spy_charts["date"].tolist()
-    spy_close = spy_charts["close"].tolist()
-    spy_return_vals = [100.*((i/spy_close[0])-1.0) for i in spy_close]
-    spy_return = pandas.DataFrame()
-    for index, date in enumerate(spy_dates):
-        doc = { "date": date, "return": spy_return_vals[index] }
-        spy_return = spy_return.append( pandas.DataFrame.from_dict(doc, orient='index').T, ignore_index=True, sort=False )
-    #spy_charts["return"] = 100.*(spy_charts["close"]/spy_charts["close"].iloc[0])-1.0)
-    #spy_charts = spy_charts[["date","return"]]
-    spy_charts.to_json(path_or_buf="output/json/spy_performance.json", orient="records")
-    #Get list of portfolios
-    portfolios = mdb_query.get_portfolios(startDate)["portfolioID"].tolist()
-    #Loop through portfolios
-    for portfolio in portfolios:
-        #Get portfolio performance data
-        perf_table = mdb_query.get_performance([portfolio], startDate).sort_values(by="date", ascending=True, axis="index")
-        #print( perf_table )
-        perf_dates = perf_table["date"].tolist()
-        perf_dates.insert(0, spy_charts["date"].iloc[0])
-        perf_percent = perf_table["percentReturn"].tolist()
-        #perf_close.insert(0, 0.0)
-        #print( perf_dates )
-        #print( perf_close )
-        #print( len(perf_dates) )
-        #print( len(perf_close) )
-        #for i in range( len(perf_dates) ):
-        #    print( '%s %d' % (perf_dates[i], perf_close[i]) )
-        perf_return = [0.0]
-        for percent in perf_percent:
-            perf_return.append( ((((100.0+percent)/100.0)*((100.0+perf_return[-1])/100.0))-1.0)*100.0 )
-        #perf_return = [100.*((i/perf_close[0])-1.0) for i in perf_close]
-        #print( perf_return )
-        #print( len( perf_return ) )
-        #print( len( perf_dates ) )
-        pf_return = pandas.DataFrame()
-        for index, date in enumerate(perf_dates):
-            doc = { "date": date, "return": perf_return[index] }
-            pf_return = pf_return.append( pandas.DataFrame.from_dict(doc, orient='index').T, ignore_index=True, sort=False )
-        pf_return.to_json(path_or_buf="output/json/"+portfolio+"_performance.json", orient="records")
