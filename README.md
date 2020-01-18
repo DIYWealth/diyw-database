@@ -45,6 +45,10 @@ To download the repository use :
 
 `git clone https://github.com/DIYWealth/diyw-database.git`
 
+Run the following line so user data isn't uploaded to github :
+
+`git update-index --skip-worktree iexscripts/constants.py`
+
 Install the project in editable mode from the `diyw-database` directory :
 
 `python3 -m pip install -e .`
