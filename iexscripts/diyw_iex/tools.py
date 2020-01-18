@@ -131,8 +131,9 @@ def get_quote(ref_symbol):
     if not quote.empty:
 
         #Don't return if any are null
-        if (quote['symbol'] != 'SPY').any() and quote.isnull().values.any():
-            return pandas.DataFrame()
+        #Actually still need stocks with null mcap and pe for performance
+        #if (quote['symbol'] != 'SPY').any() and quote.isnull().values.any():
+        #    return pandas.DataFrame()
 
         if quote[['close','closeTime']].isnull().values.any():
             return pandas.DataFrame()
