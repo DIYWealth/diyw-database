@@ -14,14 +14,17 @@ import pymongo
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import BulkWriteError
 import datetime
-import iexscripts.diyw_mdb.portfolio_management as pf_mgmt
+from mdb import PortfolioManagement
 
 ################################################
 ################################################
 
 if __name__ == '__main__':
 
+    pf_mgmt = PortfolioManagement()
     pf_mgmt.insert_portfolio()
     pf_mgmt.insert_transactions()
-    pf_mgmtmdb_insert.sell_all()
-    pf_mgmt.buy_all()
+    transactionDate = "2019-12-27"
+    pf_mgmt.pf_sell_all( transactionDate )
+    transactionDate = "2019-12-30"
+    pf_mgmt.pf_buy_all( transactionDate )

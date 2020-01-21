@@ -14,13 +14,14 @@ import pymongo
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import BulkWriteError
 import datetime
-import iexscripts.diyw_mdb.insert as mdb_insert
+from mdb import Insert
 
 ################################################
 ################################################
 
 if __name__ == '__main__':
 
+    mdb_insert = Insert()
     mdb_insert.insert_symbols()
     mdb_insert.insert_company()
     mdb_insert.insert_balancesheets()

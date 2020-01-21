@@ -5,8 +5,8 @@
 #        query the diywealth database and plot portfolio performance
 # Usage: python3 iexplotter.py
 
-import iex_tools
-import iexplotter_tools
+from mdb import Query
+from utils import plot as iexplotter_tools
 import os
 import sys
 import string
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     startDate = "2018-07-02"
 
     #Get list of portfolios
-    portfolios = iex_tools.mdb_get_portfolios(startDate)["portfolioID"].tolist()
+    portfolios = Query().mdb_get_portfolios(startDate)["portfolioID"].tolist()
 
     #Plot portfolio returns
     iexplotter_tools.plot_portfolio_return(portfolios, startDate)

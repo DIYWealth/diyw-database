@@ -14,13 +14,14 @@ import pymongo
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import BulkWriteError
 import datetime
-from iexscripts.diyw_mdb import delete as mdb_delete
+from mdb import Delete
 
 ################################################
 ################################################
 
 if __name__ == '__main__':
 
+    mdb_delete = Delete()
     #mdb_delete.delete_duplicate_charts()
     mdb_delete.delete_duplicate_balancesheets()
     #mdb_delete.delete_performance("2019-12-31")

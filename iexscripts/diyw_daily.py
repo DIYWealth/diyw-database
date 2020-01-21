@@ -14,17 +14,21 @@ import pymongo
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import BulkWriteError
 import datetime
-import iexscripts.diyw_mdb.insert as mdb_insert
+from mdb import Insert
+from mdb import Export
 
 ################################################
 ################################################
 
 if __name__ == '__main__':
 
+    mdb_insert = Insert()
     mdb_insert.insert_quotes()
     mdb_insert.insert_dividends()
     mdb_insert.insert_holdings()
     mdb_insert.insert_performance()
     mdb_insert.insert_stock_list()
-    mdb_insert.export_stock_list()
-    mdb_insert.export_performance()
+    
+    mdb_export = Export()
+    mdb_export.export_stock_list()
+    mdb_export.export_performance()
