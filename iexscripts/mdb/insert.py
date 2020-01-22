@@ -192,10 +192,7 @@ class Insert(Mdb):
         printProgressBar(0, len(mdb_symbols_full.index), prefix = 'Progress:', suffix = '', length = 50)
         idx_min = 0
         query_num = 100
-        #flag = True
         while idx_min < len(mdb_symbols_full.index):
-            #if idx_min > 1:
-            #    break
             idx_max = idx_min + query_num
             if idx_max > len(mdb_symbols_full.index):
                 idx_max = len(mdb_symbols_full.index)
@@ -203,23 +200,20 @@ class Insert(Mdb):
             mdb_symbols.reset_index(drop=True, inplace=True)
             #Get latest price in MongoDB for each symbol up to 50 days ago
             mdb_quotes = mdb_query.get_quotes( mdb_symbols.tolist(), currDate, "latest" )
-            #print( mdb_quotes )
-            #break
             #Loop through symbols
             for index, mdb_symbol in mdb_symbols.iteritems():
-                #Get quote from IEX
-                #print( mdb_symbol )
-                #print( mdb_symbol["symbol"] )
-                #if mdb_symbol == "GRUB":
-                #    flag = False
-                #if flag:
-                #    continue
-                iex_quote = iex.get_quote( mdb_symbol )
                 #Get matching quote in MongoDB
                 if not mdb_quotes.empty:
                     mdb_quote = mdb_quotes[ mdb_quotes['symbol'] == mdb_symbol ]
                 else:
                     mdb_quote = mdb_quotes
+                #continue if already up to date
+                if not mdb_quote.empty and (mdb_quote['date'].iloc[0] == currDate):
+                    #Update progress bar
+                    printProgressBar(idx_min+index+1, len(mdb_symbols_full.index), prefix = 'Progress:', suffix = "No new data for " + mdb_symbol + "      ", length = 50)
+                    continue
+                #Get quote from IEX
+                iex_quote = iex.get_quote( mdb_symbol )
                 #Select quotes more recent than MongoDB
                 if not iex_quote.empty and not mdb_quote.empty:
                     mask = iex_quote['date'] > mdb_quote['date'].iloc[0]
