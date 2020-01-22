@@ -674,7 +674,8 @@ class Query(Mdb):
         for doc in results:
             stock_list = stock_list.append( pandas.DataFrame.from_dict(doc, orient='index').T, ignore_index=True, sort=False )
     
-        stock_list = stock_list.sort_values(by="peROERatio", ascending=True, axis="index")
+        if not stock_list.empty:
+            stock_list = stock_list.sort_values(by="peROERatio", ascending=True, axis="index")
         stock_list.drop("_id", axis=1, errors='ignore', inplace=True)
         stock_list.reset_index(drop=True, inplace=True)
     
