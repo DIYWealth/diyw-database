@@ -1,0 +1,9 @@
+requests
+pandas
+arrow
+socketIO-client-nexus
+pymongo
+numpy
+matplotlib
+peewee
+flask
