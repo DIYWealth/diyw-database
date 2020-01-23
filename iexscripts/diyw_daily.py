@@ -16,6 +16,7 @@ from pymongo.errors import BulkWriteError
 import datetime
 from mdb import Insert
 from mdb import Export
+from utils import Ftp
 
 ################################################
 ################################################
@@ -32,3 +33,16 @@ if __name__ == '__main__':
     mdb_export = Export()
     mdb_export.export_stock_list()
     mdb_export.export_performance()
+
+    print('Upload data to webserver with FTP')
+    ftp = Ftp()
+    path = os.path.dirname(os.path.realpath(__file__))
+    path = path + '/output/json/'
+    file_list = []
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        for f in filenames:
+            if '.json' in f:
+                file_list.append(f)
+        break
+    ftp.placeFiles(path, file_list)
+    ftp.quitConnection()
