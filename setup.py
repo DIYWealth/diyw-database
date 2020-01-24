@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 required = [ 'requests',
              'pandas',
              'arrow',
-             'socketIO-client-nexus'
+             'socketIO-client-nexus',
              'pymongo',
              'numpy',
              'matplotlib',
@@ -16,6 +16,6 @@ setup(
     description='Back-end processing for DIYWealth',
     author='John Walker and Robert Stainforth',
     url='https://github.com/DIYWealth',
-    packages=find_packages('iexscripts'),
+    packages=['iexscripts',],
     install_requires=required
 )
