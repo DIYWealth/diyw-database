@@ -201,6 +201,7 @@ class Insert(Mdb):
             #Get latest price in MongoDB for each symbol up to 50 days ago
             mdb_quotes = mdb_query.get_quotes( mdb_symbols.tolist(), currDate, "latest" )
             #Loop through symbols
+            iex_quotes = pandas.DataFrame()
             for index, mdb_symbol in mdb_symbols.iteritems():
                 #Get matching quote in MongoDB
                 if not mdb_quotes.empty:
@@ -219,14 +220,17 @@ class Insert(Mdb):
                     mask = iex_quote['date'] > mdb_quote['date'].iloc[0]
                     iex_quote = iex_quote.loc[mask]
                 #Insert if quotes exist
-                #print( iex_quote )
                 if not iex_quote.empty:
                     #Update progress bar
                     printProgressBar(idx_min+index+1, len(mdb_symbols_full.index), prefix = 'Progress:', suffix = "Inserting quote for " + mdb_symbol + "      ", length = 50)
-                    self.db.iex_quotes.insert_many( iex_quote.to_dict('records') )
+                    #Append quote
+                    iex_quotes = iex_quotes.append(iex_quote, ignore_index=True, sort=False)
                 else:
                     #Update progress bar
                     printProgressBar(idx_min+index+1, len(mdb_symbols_full.index), prefix = 'Progress:', suffix = "No new data for " + mdb_symbol + "      ", length = 50)
+            #Bulk insert quotes
+            if not iex_quotes.empty:
+                self.db.iex_quotes.insert_many( iex_quotes.to_dict('records') )
             idx_min = idx_min + query_num
     
     #If new dividends exist then upload them
